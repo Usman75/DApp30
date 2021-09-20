@@ -1,4 +1,10 @@
 require("@nomiclabs/hardhat-waffle");
+require("dotenv").config();
+require("@nomiclabs/hardhat-etherscan");
+
+const MORALIS_API_KEY = process.env.MORALIS_API_KEY;
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -17,5 +23,16 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.8.4",
+  solidity: "0.8.0",
+  networks: {
+    ropsten: {
+      url: `https://speedy-nodes-nyc.moralis.io/${MORALIS_API_KEY}/eth/ropsten/archive`,
+      accounts: [`0x${PRIVATE_KEY}`],
+    },
+  },
+  etherscan: {
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: `${ETHERSCAN_API_KEY}`
+  }
 };

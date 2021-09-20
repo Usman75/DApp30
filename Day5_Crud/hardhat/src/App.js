@@ -1,23 +1,119 @@
 import logo from './logo.svg';
 import './App.css';
+import {useState} from 'react';
+import {ethers} from 'ethers';
+import Crud from './contracts/Crud.json';
+const crudAddress = '0xb3Ff937Cdf74dCCC33D9A1980160cfc25f9FEF2a';
+
+
 
 function App() {
+
+    const [account, setAccount] = useState('');
+    // const [crud, setCrud] = useState('');
+    const [user, setUser] = useState('');
+    const [msg , setMsg]  = useState(null);
+    const [userId, setId] = useState('');
+    const [userData, setData] = useState(null);
+
+    const initAccount = async () => {
+      const getAccounts = await window.ethereum.request({method: 'eth_requestAccounts'});
+    console.log(getAccounts[0]);
+    setAccount(getAccounts[0]);
+    }
+
+
+    const createUser = async () => {
+      if( typeof window.ethereum !== 'undefined'){
+        const provider = await new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const crud = await new ethers.Contract(crudAddress, Crud.abi, signer);
+        const createTx = await crud.create(user);
+        await createTx.wait();
+        setMsg(user);
+        setUser('');
+      }
+    }
+    const getUser = async () => {
+      if( typeof window.ethereum !== 'undefined'){
+        let _id = parseInt(userId);
+        console.log(_id);
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        console.log(await provider.getBlockNumber());
+        const crud = new ethers.Contract(crudAddress, Crud.abi, provider);
+        console.log(crud);
+        try{
+        const result = await crud.read(_id);
+        setId('');
+        setData(result);
+        console.log(result);
+        }catch(err){
+          console.log('Error : ', err);
+        }
+        
+      }
+    }
+
+    const updateUser = async () => {
+      let _id = parseInt(userId);
+      if( typeof window.ethereum !== 'undefined'){
+        const provider = await new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const crud = await new ethers.Contract(crudAddress, Crud.abi, signer);
+        try{
+        const updateTx = await crud.update(_id,user);
+          const result = await updateTx.wait();
+        setId('');
+        setUser('');
+        console.log(result);
+        } catch (err){
+          console.log('Error : ' , err );
+        }
+      }
+
+    }
+
+    const deleteUser = async () => {
+      let _id = parseInt(userId);
+      if( typeof window.ethereum !== 'undefined'){
+        const provider = await new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const crud = await new ethers.Contract(crudAddress, Crud.abi, signer);
+        try{
+        const removeTx = await crud.remove(_id);
+          const result = await removeTx.wait();
+        setId('');
+        console.log(result);
+        } catch (err){
+          console.log('Error : ' , err );
+        }
+      }
+
+    }
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <button onClick={initAccount}> {account?'Connected': 'Connec Wallet'}</button>
+       <p className=".bg-info">{account}</p>
+
+
+        Create User : <input onChange = {e => setUser(e.target.value)} placeholder = "Name"  />
+       <button type="button" className="btn btn-primary" onClick ={createUser}> Add User </button><br />
+       <p className="text-success">{msg?`The new user ${msg} created`:''} </p>
+       
+       
+       View User : <input onChange = {e => setId(e.target.value)} placeholder = "ID"  />
+       <button type="button" className="btn btn-info" onClick={getUser} >Submit</button>
+        <p className=".text-info"> {userData ? `ID : ${userData[0]} User : ${userData[1]}` : ''} </p>
+
+
+        Update User: <input onChange = {e => setId(e.target.value)} placeholder = "ID"  />
+        <input onChange = {e => setUser(e.target.value)} placeholder = "Name"  />
+         <button type="button" className="btn btn-warning" onClick={updateUser} >Update</button><br />
+         <br />
+         
+        Delete User : <input onChange = {e => setId(e.target.value)} placeholder = "ID"  />
+        <button type="button" className="btn btn-danger" onClick={deleteUser} >Delete</button> 
+
     </div>
   );
 }
